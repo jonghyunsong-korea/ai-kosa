@@ -1,0 +1,6 @@
+{
+  "name": "낱말 맞추기 그리드 게임",
+  "description": "4글자 이하의 한국어 명사들로 구성된 가로세로 낱말 맞추기 그리드 퍼즐 게임입니다.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

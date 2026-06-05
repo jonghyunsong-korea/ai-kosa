@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>냉장고 파먹기 - AI 프로토타입</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts (Noto Sans KR) -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col bg-orange-50/30">
+
+  <!-- 네비게이션 바 -->
+  <header class="bg-white border-b border-orange-100 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+          <i data-lucide="refrigerator" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-black text-slate-900 tracking-tight">냉장고 파먹기</h1>
+          <p class="text-xs text-orange-600 font-medium -mt-1">AI Smart Fridge Parser</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-800">
+          <span class="w-1.5 h-1.5 bg-orange-500 rounded-full mr-1.5 animate-pulse"></span>
+          AI Live 연결됨
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Toast 알림 컨테이너 -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <!-- 히어로 섹션 (밝고 환하게) -->
+    <div class="bg-gradient-to-r from-orange-400 to-amber-400 rounded-3xl p-6 md:p-10 text-white shadow-xl mb-8 relative overflow-hidden">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_50%)]"></div>
+      <div class="relative z-10 max-w-3xl">
+        <span class="bg-white/20 text-white text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full border border-white/30 shadow-sm">
+          PROTOTYPE v1.3
+        </span>
+        <h2 class="text-3xl md:text-4xl font-extrabold mt-4 mb-2 tracking-tight drop-shadow-sm">
+          냉장고 사진 한 장으로 시작하는 <br class="hidden sm:inline">알뜰하고 건강한 요리 조율사
+        </h2>
+        <p class="text-white/90 text-sm md:text-base leading-relaxed mb-6 font-medium">
+          냉장고 안 식재료를 지능적으로 인식해 낭비되는 재료를 완전히 줄여줍니다. 건강을 위한 저칼로리 및 저혈당 맞춤 추천 기능도 확인해 보세요.
+        </p>
+      </div>
+    </div>
+
+    <!-- 메인 그리드 레이아웃 -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- 왼쪽 영역: 사진 업로드 및 재료 검출 (5컬럼) -->
+      <section class="lg:col-span-5 flex flex-col gap-6">
+        
+        <!-- 1. 이미지 입력 카드 -->
+        <div class="bg-white rounded-2xl p-6 border border-orange-100 shadow-sm flex flex-col gap-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="camera" class="text-orange-500 w-5 h-5"></i>
+              1 단계: 냉장고 속 촬영하기
+            </h3>
+          </div>
+
+          <!-- 탭 선택: 직접 업로드 / 샘플 이미지 테스트 -->
+          <div class="flex bg-orange-50 p-1 rounded-xl">
+            <button id="tab-upload" onclick="switchInputTab('upload')" class="flex-1 text-center py-2 text-sm font-semibold rounded-lg bg-white text-slate-800 shadow-sm transition-all border border-orange-100">
+              내 사진 올리기
+            </button>
+            <button id="tab-sample" onclick="switchInputTab('sample')" class="flex-1 text-center py-2 text-sm font-semibold rounded-lg text-orange-600 hover:text-orange-800 transition-all">
+              샘플로 간편 테스트
+            </button>
+          </div>
+
+          <!-- 직접 파일 업로드 뷰 -->
+          <div id="view-upload" class="flex flex-col gap-3">
+            <label for="image-input" class="border-2 border-dashed border-orange-200 hover:border-orange-400 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all bg-orange-50/50 hover:bg-orange-50 group">
+              <input type="file" id="image-input" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+              <div class="w-12 h-12 rounded-full bg-orange-100 group-hover:bg-orange-200 flex items-center justify-center text-orange-500 transition-all mb-3 shadow-sm">
+                <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+              </div>
+              <p class="text-sm font-bold text-slate-700">냉장고 사진 촬영 또는 업로드</p>
+              <p class="text-xs text-orange-400 mt-1">PNG, JPG (권장: 고화질 정면 사진)</p>
+            </label>
+          </div>
+
+          <!-- 샘플 사진 선택 뷰 -->
+          <div id="view-sample" class="hidden flex flex-col gap-3">
+            <p class="text-xs text-orange-500/80 font-medium">테스트용 이미지를 선택하여 AI 디텍션 성능을 즉시 시험해 보세요.</p>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="selectSampleImage('diet')" class="group relative overflow-hidden rounded-xl border-2 border-transparent hover:border-orange-400 transition-all text-left shadow-sm">
+                <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=300&q=80" alt="Diet Sample" class="h-20 w-full object-cover group-hover:scale-105 transition-all">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent p-1.5 flex items-end">
+                  <span class="text-[10px] text-white font-bold truncate">웰빙 다이어터</span>
+                </div>
+              </button>
+              <button onclick="selectSampleImage('stew')" class="group relative overflow-hidden rounded-xl border-2 border-transparent hover:border-orange-400 transition-all text-left shadow-sm">
+                <img src="https://images.unsplash.com/photo-1595981267035-7b04ec84a82d?auto=format&fit=crop&w=300&q=80" alt="Stew Sample" class="h-20 w-full object-cover group-hover:scale-105 transition-all">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent p-1.5 flex items-end">
+                  <span class="text-[10px] text-white font-bold truncate">국/찌개 마니아</span>
+                </div>
+              </button>
+              <button onclick="selectSampleImage('meat')" class="group relative overflow-hidden rounded-xl border-2 border-transparent hover:border-orange-400 transition-all text-left shadow-sm">
+                <img src="https://images.unsplash.com/photo-1553163147-622ab578d844?auto=format&fit=crop&w=300&q=80" alt="Meat Sample" class="h-20 w-full object-cover group-hover:scale-105 transition-all">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent p-1.5 flex items-end">
+                  <span class="text-[10px] text-white font-bold truncate">고기 러버 자취생</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 이미지 미리보기 & 분석 상태 -->
+          <div id="preview-area" class="hidden border border-orange-200 rounded-2xl overflow-hidden bg-orange-50 relative shadow-inner">
+            <img id="preview-image" src="" alt="냉장고 프리뷰" class="w-full max-h-64 object-cover">
+            <button onclick="clearImage()" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-900/90 text-white flex items-center justify-center transition-all">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+            
+            <!-- 업로드 분석 진행률 -->
+            <div id="analyzer-overlay" class="absolute inset-0 bg-slate-900/80 flex flex-col items-center justify-center text-white p-4 hidden">
+              <div class="relative w-16 h-16 mb-4">
+                <div class="absolute inset-0 rounded-full border-4 border-orange-500/30"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-orange-500 border-t-transparent animate-spin"></div>
+              </div>
+              <p class="text-sm font-bold tracking-wide animate-pulse text-orange-100" id="analysis-status-text">식재료 정밀 디텍팅 중...</p>
+              <p class="text-xs text-orange-200/70 mt-1">Gemini Vision API가 원본을 대조 중입니다.</p>
+            </div>
+          </div>
+
+          <!-- 트리거 분석 버튼 -->
+          <button id="btn-analyze" onclick="startImageAnalysis()" class="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white py-3.5 px-4 rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2" disabled>
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+            스마트 식재료 분석 시작
+          </button>
+        </div>
+
+        <!-- 2. 실시간 AI 인벤토리 매니저 -->
+        <div class="bg-white rounded-2xl p-6 border border-orange-100 shadow-sm flex flex-col gap-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="layers" class="text-orange-500 w-5 h-5"></i>
+                현재 냉장고 보관함
+              </h3>
+              <p class="text-xs text-slate-500">인식된 재료를 관리하거나 직접 보강해 보세요.</p>
+            </div>
+            <button onclick="clearInventory()" class="text-xs text-orange-400 hover:text-red-500 font-medium transition-all flex items-center gap-1">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 전체 비우기
+            </button>
+          </div>
+
+          <!-- 인벤토리 수동 신규 등록 입력폼 -->
+          <form onsubmit="handleAddCustomIngredient(event)" class="flex gap-2">
+            <input id="input-new-ingredient" type="text" placeholder="예: 삼겹살, 버섯, 우유 등" class="flex-1 bg-orange-50/50 border border-orange-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all">
+            <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm px-4 py-2 rounded-xl transition-all flex items-center gap-1 shadow-sm">
+              <i data-lucide="plus" class="w-4 h-4"></i> 추가
+            </button>
+          </form>
+
+          <!-- 보관함 리스트 컨테이너 -->
+          <div id="inventory-list" class="flex flex-wrap gap-2 max-h-60 overflow-y-auto custom-scrollbar pr-1 min-h-[80px] border border-dashed border-orange-200 rounded-xl p-3 bg-orange-50/50">
+            <!-- 동적 인벤토리 아이템 자리 -->
+            <div class="text-slate-400 text-xs w-full text-center py-6 flex flex-col items-center justify-center gap-1">
+              <i data-lucide="package-open" class="w-8 h-8 text-slate-300"></i>
+              등록된 재료가 없습니다. 사진을 분석하거나 추가해 보세요.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 오른쪽 영역: 레시피 매칭 및 AI 특제 요리 제안 (7컬럼) -->
+      <section class="lg:col-span-7 flex flex-col gap-6">
+        
+        <!-- 3. 실시간 레시피 매칭률 랭킹 -->
+        <div class="bg-white rounded-2xl p-6 border border-orange-100 shadow-sm flex flex-col gap-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="chef-hat" class="text-orange-500 w-5 h-5"></i>
+                2 단계: 파먹기 추천 요리 리스트
+              </h3>
+              <p class="text-xs text-slate-500 mt-1">기획서 기반 매칭률 수식($M$)으로 자동 계산된 추천 랭킹입니다.</p>
+            </div>
+          </div>
+          
+          <!-- 건강 맞춤 필터 옵션들 -->
+          <div class="flex flex-wrap gap-2 border-b border-orange-100 pb-3">
+            <label class="flex items-center gap-2 cursor-pointer bg-orange-50 hover:bg-orange-100 transition-all px-2.5 py-1.5 rounded-xl border border-orange-200">
+              <input type="checkbox" id="exclude-seasonings" checked onchange="renderRecipeList()" class="rounded border-orange-300 text-orange-500 focus:ring-orange-500">
+              <span class="text-xs font-bold text-orange-800">조미료는 보유로 가정</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer bg-green-50 hover:bg-green-100 transition-all px-2.5 py-1.5 rounded-xl border border-green-200">
+              <input type="checkbox" id="filter-low-calorie" onchange="renderRecipeList()" class="rounded border-green-300 text-green-600 focus:ring-green-500">
+              <span class="text-xs font-bold text-green-700">저칼로리 (400kcal 이하)</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer bg-blue-50 hover:bg-blue-100 transition-all px-2.5 py-1.5 rounded-xl border border-blue-200">
+              <input type="checkbox" id="filter-low-sugar" onchange="renderRecipeList()" class="rounded border-blue-300 text-blue-600 focus:ring-blue-500">
+              <span class="text-xs font-bold text-blue-700">저혈당 추천</span>
+            </label>
+          </div>
+
+          <!-- 레시피 리스트 컨테이너 -->
+          <div id="recipe-list" class="flex flex-col gap-3">
+            <!-- 요리 리스트 아이템이 동적으로 배치됩니다 -->
+          </div>
+        </div>
+
+        <!-- 4. 실시간 AI 수석 셰프 제안 생성기 -->
+        <div class="bg-white rounded-2xl p-6 border border-orange-100 shadow-sm flex flex-col gap-4">
+          <div class="flex items-center justify-between border-b border-orange-100 pb-3">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="cpu" class="text-indigo-500 w-5 h-5"></i>
+                3 단계: AI 특제 시그니처 요리 제안
+              </h3>
+              <p class="text-xs text-slate-500">현재 보관된 재료와 선택된 건강 필터를 반영하여 새로운 요리를 설계해 드립니다.</p>
+            </div>
+            <button onclick="generateCustomAIQuery()" id="btn-ai-generate" class="bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-bold text-xs py-2 px-3.5 rounded-xl transition-all shadow-md shadow-indigo-500/20 flex items-center gap-1.5 min-w-max">
+              <i data-lucide="wand-2" class="w-3.5 h-3.5"></i>
+              AI 셰프 호출
+            </button>
+          </div>
+
+          <!-- 생성된 스페셜 레시피 출력판 -->
+          <div id="ai-custom-recipe-box" class="bg-gradient-to-br from-orange-50/50 to-amber-50/30 border border-orange-100 rounded-2xl p-5 min-h-[120px] flex flex-col justify-center relative">
+            
+            <!-- 초기 상태 -->
+            <div id="ai-recipe-init" class="text-center py-6">
+              <div class="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500 mx-auto mb-2">
+                <i data-lucide="chef-hat" class="w-6 h-6"></i>
+              </div>
+              <p class="text-sm font-bold text-slate-700">현물 재료 맞춤형 실시간 레시피 제작</p>
+              <p class="text-xs text-slate-400 mt-1">상단의 'AI 셰프 호출' 버튼을 누르면 인벤토리 상황에 따라 1:1 맞춤형 요리를 설계합니다.</p>
+            </div>
+
+            <!-- 로딩 상태 -->
+            <div id="ai-recipe-loading" class="hidden flex flex-col items-center justify-center py-8">
+              <div class="relative w-12 h-12 mb-3">
+                <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
+              </div>
+              <p class="text-sm font-bold text-indigo-800">보유 식재료 분석 및 궁합 매칭 중...</p>
+              <p class="text-xs text-slate-400 mt-1">Gemini AI가 특선 조리 레시피북을 집필하고 있습니다.</p>
+            </div>
+
+            <!-- 출력물 공간 -->
+            <div id="ai-recipe-content" class="hidden flex flex-col gap-4 text-sm leading-relaxed text-slate-700">
+              <!-- 마크다운식 렌더링 영역 -->
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- 상세 레시피 모달 창 -->
+  <div id="recipe-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden transform scale-95 transition-transform duration-300">
+      
+      <!-- 헤더 -->
+      <div class="bg-gradient-to-r from-orange-400 to-amber-500 text-white p-6 relative flex-shrink-0">
+        <button onclick="closeRecipeModal()" class="absolute top-4 right-4 text-white/80 hover:text-white hover:scale-110 transition-all z-10 bg-black/20 rounded-full p-1">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+        <span id="modal-category" class="bg-white/20 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/20 shadow-sm relative z-10">메인 요리</span>
+        <h3 id="modal-title" class="text-2xl font-black mt-2 drop-shadow-sm relative z-10">요리 이름</h3>
+        <p id="modal-desc" class="text-orange-50 text-xs mt-1 relative z-10 font-medium">요리에 관한 한 줄 요약 정보</p>
+      </div>
+
+      <!-- 메인 콘텐츠 스크롤 영역 -->
+      <div class="overflow-y-auto custom-scrollbar flex flex-col">
+        
+        <!-- 요리 이미지 컨테이너 -->
+        <div id="modal-image-container" class="w-full h-48 sm:h-64 relative hidden flex-shrink-0 bg-orange-50">
+          <img id="modal-image" src="" alt="요리 이미지" class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-6 flex flex-col gap-6">
+          <!-- 개요 그리드 -->
+          <div class="grid grid-cols-3 gap-3">
+            <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-3 text-center">
+              <span class="text-[10px] text-orange-400 font-bold block mb-0.5">조리 시간</span>
+              <span id="modal-time" class="text-sm font-bold text-orange-900">15분</span>
+            </div>
+            <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-3 text-center">
+              <span class="text-[10px] text-orange-400 font-bold block mb-0.5">난이도</span>
+              <span id="modal-difficulty" class="text-sm font-bold text-orange-900">쉬움</span>
+            </div>
+            <div class="bg-orange-50/50 border border-orange-100 rounded-xl p-3 text-center">
+              <span class="text-[10px] text-orange-400 font-bold block mb-0.5">칼로리</span>
+              <span id="modal-calories" class="text-sm font-bold text-orange-900">320 kcal</span>
+            </div>
+          </div>
+
+          <!-- 식재료 체크리스트 -->
+          <div>
+            <h4 class="font-extrabold text-slate-900 flex items-center gap-1.5 mb-3">
+              <i data-lucide="shopping-basket" class="text-orange-500 w-4 h-4"></i>
+              필요 식재료 체크리스트
+            </h4>
+            <div id="modal-ingredients" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <!-- 재료 아이템이 체크 표시(소장 여부)와 함께 배치됩니다 -->
+            </div>
+          </div>
+
+          <!-- 양념 및 소스 -->
+          <div id="modal-seasonings-container" class="bg-amber-50/80 border border-amber-200 rounded-xl p-4">
+            <h4 class="font-bold text-amber-900 flex items-center gap-1.5 mb-2 text-xs">
+              <i data-lucide="droplet" class="text-amber-500 w-4 h-4"></i>
+              기본 조미료 리스트
+            </h4>
+            <p id="modal-seasonings" class="text-amber-800 text-xs leading-relaxed">간장, 식초, 고춧가루, 다진 마늘 등</p>
+          </div>
+
+          <!-- 조리 단계 (체크박스형) -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="font-extrabold text-slate-900 flex items-center gap-1.5">
+                <i data-lucide="cooking-pot" class="text-orange-500 w-4 h-4"></i>
+                조리 가이드북
+              </h4>
+              <span class="text-xs text-orange-400 font-medium">단계를 완료하면서 터치하세요.</span>
+            </div>
+            <div id="modal-steps" class="flex flex-col gap-3">
+              <!-- 단계별 조리 가이드 목록 -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 푸터 -->
+      <div class="border-t border-orange-100 p-4 bg-orange-50/50 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-orange-500 font-medium">부족한 재료가 있으신가요?</span>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="buyMissingIngredients()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5">
+            <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+            부족한 재료 구매
+          </button>
+          <button onclick="closeRecipeModal()" class="bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs py-2.5 px-4 rounded-xl transition-all shadow-sm">
+            닫기
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 푸터 바 -->
+  <footer class="bg-amber-50 text-amber-800 mt-12 border-t border-amber-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-white shadow-sm">
+          <i data-lucide="refrigerator" class="w-5 h-5"></i>
+        </div>
+        <span class="text-orange-700 font-black tracking-tight">냉장고 파먹기</span>
+      </div>
+      <p class="text-xs text-amber-700/80 text-center md:text-left font-medium">
+        본 앱은 식재료 낭비 방지를 위한 지능형 인공지능 매칭 프로토타입입니다. OpenAI 및 Gemini API 연결에 의해 동적으로 구동됩니다.
+      </p>
+      <div class="flex gap-4 text-xs font-bold text-amber-700/80">
+        <a href="#" class="hover:text-orange-600 transition-all">이용약관</a>
+        <a href="#" class="hover:text-orange-600 transition-all">개인정보처리방침</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Custom JS -->
+  <script src="script.js"></script>
+</body>
+</html>
